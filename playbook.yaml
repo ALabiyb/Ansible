@@ -1,0 +1,54 @@
+---
+- name: Taking backup of PostgreSQL DB
+  hosts: postgres
+
+  tasks:
+    - name: Running PostgreSQLSQL backup script form local server
+      ansible.builtin.script: /home/vagrant/scripts/pg_backup.sh
+      register: PostgreSQL_Script_Output
+
+    - name: Print script output
+      ansible.builtin.debug:
+        var: PostgreSQL_Script_Output.stdout
+
+    - name: Get today date
+      ansible.builtin.command: date +"%Y-%m-%d"
+      register: today_date
+
+    - name: Fetch files from remote nodes
+      ansible.builtin.fetch:
+        src: /home/vagrant/postgres_backup/{{ today_date.stdout }}_{{ db_name }}.sql
+        dest: /home/vagrant/postgres_backup/
+        flat: yes
+      vars:
+        db_name: sample
+      # create .pgpass and save ipaddress:*:Dbname:username:paassword
+
+
+- name: Taking backup of MySQL
+  hosts: mysql
+
+  tasks:
+    - name: Running MySQL backup script form local server
+      ansible.builtin.script: /home/vagrant/scripts/mysql_backup.sh
+      register: MySQL_Script_Output
+
+    - name: Print PostgreSQL Script Output
+      ansible.builtin.debug:
+        var: MySQL_Script_Output.stdout
+
+    - name: Get today date
+      ansible.builtin.command: date +"%Y%m%d"
+      register: today_date
+
+    - name: Print time
+      ansible.builtin.debug:
+        var: today_date.stdout
+
+    - name: Fetch files from remote nodes
+      ansible.builtin.fetch:
+        src: /home/vagrant/dbbackp/{{ db_name }}-{{ today_date.stdout }}.sql
+        dest: /home/vagrant/mysql_backup/
+        flat: yes
+      vars:
+        db_name: accounts
